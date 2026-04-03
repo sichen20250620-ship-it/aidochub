@@ -14,27 +14,24 @@ class ClaudeProvider extends BaseProvider {
     try {
       const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-      const stream = await client.messages.stream({
+      const stream = await client.messages.create({
         model: process.env.AI_MODEL || 'claude-sonnet-4-20250514',
         max_tokens: 4096,
         system: systemPrompt,
-        messages
+        messages,
+        stream: true
       })
 
       let fullText = ''
 
-      stream.on('text', (text) => {
-        fullText += text
-        onChunk(text)
-      })
+      for await (const event of stream) {
+        if (event.type === 'content_block_delta' && event.delta?.text) {
+          fullText += event.delta.text
+          onChunk(event.delta.text)
+        }
+      }
 
-      stream.on('end', () => {
-        onDone(fullText)
-      })
-
-      stream.on('error', (err) => {
-        onError(err)
-      })
+      onDone(fullText)
     } catch (err) {
       onError(err)
     }
