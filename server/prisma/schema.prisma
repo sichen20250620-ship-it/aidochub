@@ -8,23 +8,40 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  username  String   @unique
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
+  username  String     @unique
   password  String
-  role      String   @default("user") // user | admin
+  role      String     @default("user") // user | admin
   avatar    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  documents Document[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 }
 
 model Category {
-  id          String   @id
+  id          String     @id
   name        String
   icon        String
   description String
-  tags        String   // JSON string: ["tag1", "tag2"]
-  sort        Int      @default(0)
+  tags        String     // JSON string: ["tag1", "tag2"]
+  sort        Int        @default(0)
+  documents   Document[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Document {
+  id          Int      @id @default(autoincrement())
+  title       String
+  summary     String?
+  content     String   // HTML 正文内容
+  filePath    String?  // 原始文件存储路径
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  uploaderId  Int
+  uploader    User     @relation(fields: [uploaderId], references: [id])
+  viewCount   Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

@@ -18,6 +18,18 @@ const routes = [
     name: 'Category',
     component: () => import('../views/Category.vue'),
     meta: { auth: true }
+  },
+  {
+    path: '/doc/:id',
+    name: 'Document',
+    component: () => import('../views/Document.vue'),
+    meta: { auth: true }
+  },
+  {
+    path: '/search',
+    name: 'Search',
+    component: () => import('../views/Search.vue'),
+    meta: { auth: true }
   }
 ]
 

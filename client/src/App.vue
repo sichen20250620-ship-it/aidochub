@@ -1,7 +1,7 @@
 <template>
   <el-container class="app-container">
     <AppHeader v-if="route.name !== 'Login'" />
-    <el-main>
+    <el-main :class="{ 'no-padding': route.name === 'Login' }">
       <router-view />
     </el-main>
   </el-container>
@@ -26,5 +26,10 @@ onMounted(() => {
 <style scoped>
 .app-container {
   min-height: 100vh;
+}
+
+.no-padding {
+  padding: 0;
+  overflow: hidden;
 }
 </style>

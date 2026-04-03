@@ -14,6 +14,7 @@
         :prefix-icon="Search"
         class="search-input"
         clearable
+        @keyup.enter="handleSearch"
       />
       <template v-if="userStore.isLoggedIn">
         <el-dropdown @command="handleCommand">
@@ -42,6 +43,12 @@ import { useUserStore } from '../stores/user'
 const searchText = ref('')
 const userStore = useUserStore()
 const router = useRouter()
+
+function handleSearch() {
+  if (searchText.value.trim()) {
+    router.push({ path: '/search', query: { q: searchText.value.trim() } })
+  }
+}
 
 function handleCommand(cmd) {
   if (cmd === 'logout') {
