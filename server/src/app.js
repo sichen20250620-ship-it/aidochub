@@ -3,6 +3,7 @@ const cors = require('cors')
 const morgan = require('morgan')
 require('dotenv').config()
 
+const authRoutes = require('./routes/auth')
 const categoryRoutes = require('./routes/category')
 const healthRoutes = require('./routes/health')
 
@@ -16,6 +17,7 @@ app.use(express.json())
 
 // 路由
 app.use('/api/health', healthRoutes)
+app.use('/api/auth', authRoutes)
 app.use('/api/categories', categoryRoutes)
 
 // 启动服务

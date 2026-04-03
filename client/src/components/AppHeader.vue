@@ -15,15 +15,40 @@
         class="search-input"
         clearable
       />
+      <template v-if="userStore.isLoggedIn">
+        <el-dropdown @command="handleCommand">
+          <span class="user-info">
+            <el-avatar :size="28">{{ userStore.user?.username?.charAt(0)?.toUpperCase() }}</el-avatar>
+            <span class="username">{{ userStore.user?.username }}</span>
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item v-if="userStore.isAdmin" command="admin">管理后台</el-dropdown-item>
+              <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </template>
     </div>
   </el-header>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { Search } from '@element-plus/icons-vue'
+import { useUserStore } from '../stores/user'
 
 const searchText = ref('')
+const userStore = useUserStore()
+const router = useRouter()
+
+function handleCommand(cmd) {
+  if (cmd === 'logout') {
+    userStore.logout()
+    router.push('/login')
+  }
+}
 </script>
 
 <style scoped>
@@ -62,7 +87,25 @@ const searchText = ref('')
   color: #909399;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .search-input {
   width: 280px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.username {
+  font-size: 14px;
+  color: #303133;
 }
 </style>
