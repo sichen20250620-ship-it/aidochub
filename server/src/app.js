@@ -6,7 +6,10 @@ require('dotenv').config()
 const authRoutes = require('./routes/auth')
 const categoryRoutes = require('./routes/category')
 const chatRoutes = require('./routes/chat')
+const commentRoutes = require('./routes/comment')
+const dashboardRoutes = require('./routes/dashboard')
 const documentRoutes = require('./routes/document')
+const favoriteRoutes = require('./routes/favorite')
 const healthRoutes = require('./routes/health')
 
 const app = express()
@@ -22,7 +25,10 @@ app.use('/api/health', healthRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/categories', categoryRoutes)
 app.use('/api/chat', chatRoutes)
+app.use('/api/comments', commentRoutes)
+app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/documents', documentRoutes)
+app.use('/api/favorites', favoriteRoutes)
 
 // 启动服务
 app.listen(PORT, () => {

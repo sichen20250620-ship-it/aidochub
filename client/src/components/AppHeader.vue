@@ -27,6 +27,7 @@
           </span>
           <template #dropdown>
             <el-dropdown-menu>
+              <el-dropdown-item command="dashboard">数据看板</el-dropdown-item>
               <el-dropdown-item v-if="userStore.isAdmin" command="admin">管理后台</el-dropdown-item>
               <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
             </el-dropdown-menu>
@@ -54,7 +55,9 @@ function handleSearch() {
 }
 
 function handleCommand(cmd) {
-  if (cmd === 'logout') {
+  if (cmd === 'dashboard') {
+    router.push('/dashboard')
+  } else if (cmd === 'logout') {
     userStore.logout()
     router.push('/login')
   }
