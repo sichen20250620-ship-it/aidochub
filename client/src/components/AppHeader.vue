@@ -16,6 +16,9 @@
         clearable
         @keyup.enter="handleSearch"
       />
+      <router-link to="/chat" class="ai-btn">
+        <el-button type="primary" round size="small">🤖 AI 问答</el-button>
+      </router-link>
       <template v-if="userStore.isLoggedIn">
         <el-dropdown @command="handleCommand">
           <span class="user-info">

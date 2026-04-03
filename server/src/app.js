@@ -5,6 +5,7 @@ require('dotenv').config()
 
 const authRoutes = require('./routes/auth')
 const categoryRoutes = require('./routes/category')
+const chatRoutes = require('./routes/chat')
 const documentRoutes = require('./routes/document')
 const healthRoutes = require('./routes/health')
 
@@ -20,6 +21,7 @@ app.use(express.json())
 app.use('/api/health', healthRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/categories', categoryRoutes)
+app.use('/api/chat', chatRoutes)
 app.use('/api/documents', documentRoutes)
 
 // 启动服务

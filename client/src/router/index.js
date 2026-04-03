@@ -30,6 +30,12 @@ const routes = [
     name: 'Search',
     component: () => import('../views/Search.vue'),
     meta: { auth: true }
+  },
+  {
+    path: '/chat',
+    name: 'Chat',
+    component: () => import('../views/Chat.vue'),
+    meta: { auth: true }
   }
 ]
 
