@@ -103,18 +103,22 @@ const chatService = {
     ]
 
     // 5. 流式调用 AI
+    console.log(`[Chat] 调用 ${provider.name}, 问题: "${question}", 检索到 ${docs.length} 篇文档`)
+
     await provider.chatStream({
       systemPrompt: contextPrompt,
       messages,
       onChunk(text) {
         res.write(`data: ${JSON.stringify({ type: 'chunk', content: text })}\n\n`)
       },
-      onDone() {
+      onDone(fullText) {
+        console.log(`[Chat] 回答完成, 长度: ${fullText.length}`)
         res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`)
         res.end()
       },
       onError(err) {
-        res.write(`data: ${JSON.stringify({ type: 'error', content: err.message })}\n\n`)
+        console.error(`[Chat] AI 错误:`, err.message || err)
+        res.write(`data: ${JSON.stringify({ type: 'error', content: err.message || '调用 AI 失败' })}\n\n`)
         res.end()
       }
     })
