@@ -46,12 +46,11 @@
         </div>
       </div>
 
-      <!-- 打字中 -->
-      <div v-if="streaming" class="msg assistant">
+      <!-- 加载中 -->
+      <div v-if="loading" class="msg assistant">
         <div class="msg-avatar">🤖</div>
         <div class="msg-body">
-          <div class="msg-content" v-html="renderMarkdown(streamingText)"></div>
-          <span class="typing-cursor">|</span>
+          <div class="msg-content loading-dots">正在思考中</div>
         </div>
       </div>
     </div>
@@ -62,13 +61,13 @@
         v-model="inputText"
         placeholder="输入你的问题..."
         size="large"
-        :disabled="streaming"
+        :disabled="loading"
         @keyup.enter="sendMessage()"
       >
         <template #append>
           <el-button
             :icon="Promotion"
-            :loading="streaming"
+            :loading="loading"
             @click="sendMessage()"
           />
         </template>
@@ -80,12 +79,11 @@
 <script setup>
 import { ref, nextTick, onMounted } from 'vue'
 import { Promotion } from '@element-plus/icons-vue'
-import { chatStream, getAIStatus } from '../api/chat'
+import { chatRequest, getAIStatus } from '../api/chat'
 
 const messages = ref([])
 const inputText = ref('')
-const streaming = ref(false)
-const streamingText = ref('')
+const loading = ref(false)
 const messagesRef = ref()
 const aiStatus = ref(null)
 
@@ -97,7 +95,6 @@ const suggestions = [
 
 function renderMarkdown(text) {
   if (!text) return ''
-  // 简易 markdown 渲染
   return text
     .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
     .replace(/`([^`]+)`/g, '<code>$1</code>')
@@ -114,53 +111,36 @@ function scrollToBottom() {
 
 async function sendMessage(text) {
   const question = text || inputText.value.trim()
-  if (!question || streaming.value) return
+  if (!question || loading.value) return
 
   inputText.value = ''
   messages.value.push({ role: 'user', content: question })
   scrollToBottom()
 
-  streaming.value = true
-  streamingText.value = ''
-  let sources = []
+  loading.value = true
 
   // 构建历史（最近 6 轮）
   const history = messages.value
     .filter(m => m.role !== 'system')
-    .slice(-6)
+    .slice(-7, -1)
     .map(m => ({ role: m.role, content: m.content }))
-  // 去掉最后一条（就是当前问题）
-  history.pop()
 
-  chatStream(
-    { question, history },
-    (chunk) => {
-      streamingText.value += chunk
-      scrollToBottom()
-    },
-    (srcList) => {
-      sources = srcList
-    },
-    () => {
-      messages.value.push({
-        role: 'assistant',
-        content: streamingText.value,
-        sources
-      })
-      streaming.value = false
-      streamingText.value = ''
-      scrollToBottom()
-    },
-    (errMsg) => {
-      messages.value.push({
-        role: 'assistant',
-        content: `⚠️ ${errMsg}`
-      })
-      streaming.value = false
-      streamingText.value = ''
-      scrollToBottom()
-    }
-  )
+  try {
+    const res = await chatRequest({ question, history })
+    messages.value.push({
+      role: 'assistant',
+      content: res.data.answer,
+      sources: res.data.sources
+    })
+  } catch {
+    messages.value.push({
+      role: 'assistant',
+      content: '⚠️ AI 回答失败，请稍后重试'
+    })
+  } finally {
+    loading.value = false
+    scrollToBottom()
+  }
 }
 
 onMounted(async () => {
@@ -330,15 +310,16 @@ onMounted(async () => {
   background: #d9ecff;
 }
 
-.typing-cursor {
-  animation: blink 0.8s infinite;
-  color: #409eff;
-  font-weight: bold;
+.loading-dots::after {
+  content: '';
+  animation: dots 1.5s infinite;
 }
 
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
+@keyframes dots {
+  0% { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '...'; }
 }
 
 .chat-input-wrap {

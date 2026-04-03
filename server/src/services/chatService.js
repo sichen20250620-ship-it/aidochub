@@ -75,14 +75,12 @@ const chatService = {
   },
 
   /**
-   * 流式对话（SSE）
+   * JSON 对话（可靠模式，适合开发阶段）
    */
-  async chat({ question, history = [] }, res) {
+  async chatJSON({ question, history = [] }) {
     const provider = getProvider()
     if (!provider) {
-      res.write(`data: ${JSON.stringify({ type: 'error', content: 'AI 服务未配置，请在 .env 中设置 ANTHROPIC_API_KEY 或 DEEPSEEK_API_KEY' })}\n\n`)
-      res.end()
-      return
+      throw new Error('AI 服务未配置，请在 .env 中设置 ANTHROPIC_API_KEY 或 DEEPSEEK_API_KEY')
     }
 
     // 1. 检索相关文档
@@ -92,35 +90,33 @@ const chatService = {
     const context = this.buildContext(docs)
     const contextPrompt = `${SYSTEM_PROMPT}\n\n以下是从知识库中检索到的相关文档内容，请基于这些内容回答用户问题：\n\n${context}`
 
-    // 3. 发送引用的文档信息
-    const sources = docs.map(d => ({ id: d.id, title: d.title }))
-    res.write(`data: ${JSON.stringify({ type: 'sources', content: sources })}\n\n`)
-
-    // 4. 构建消息历史
+    // 3. 构建消息历史
     const messages = [
       ...history.map(h => ({ role: h.role, content: h.content })),
       { role: 'user', content: question }
     ]
 
-    // 5. 流式调用 AI
+    // 4. 调用 AI
+    const sources = docs.map(d => ({ id: d.id, title: d.title }))
     console.log(`[Chat] 调用 ${provider.name}, 问题: "${question}", 检索到 ${docs.length} 篇文档`)
 
-    await provider.chatStream({
-      systemPrompt: contextPrompt,
-      messages,
-      onChunk(text) {
-        res.write(`data: ${JSON.stringify({ type: 'chunk', content: text })}\n\n`)
-      },
-      onDone(fullText) {
-        console.log(`[Chat] 回答完成, 长度: ${fullText.length}`)
-        res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`)
-        res.end()
-      },
-      onError(err) {
-        console.error(`[Chat] AI 错误:`, err.message || err)
-        res.write(`data: ${JSON.stringify({ type: 'error', content: err.message || '调用 AI 失败' })}\n\n`)
-        res.end()
-      }
+    return new Promise((resolve, reject) => {
+      let fullText = ''
+      provider.chatStream({
+        systemPrompt: contextPrompt,
+        messages,
+        onChunk(text) {
+          fullText += text
+        },
+        onDone() {
+          console.log(`[Chat] 回答完成, 长度: ${fullText.length}`)
+          resolve({ answer: fullText, sources })
+        },
+        onError(err) {
+          console.error(`[Chat] AI 错误:`, err.message || err)
+          reject(err)
+        }
+      })
     })
   }
 }

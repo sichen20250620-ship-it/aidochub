@@ -2,24 +2,20 @@ const chatService = require('../services/chatService')
 const { getAIStatus } = require('../services/ai')
 
 const chatController = {
-  // AI 对话（SSE 流式）
+  // AI 对话（JSON 响应）
   async chat(req, res) {
     const { question, history } = req.body
     if (!question?.trim()) {
       return res.status(400).json({ code: 400, message: '请输入问题' })
     }
 
-    // 设置 SSE 响应头
-    res.setHeader('Content-Type', 'text/event-stream')
-    res.setHeader('Cache-Control', 'no-cache')
-    res.setHeader('Connection', 'keep-alive')
-    res.setHeader('X-Accel-Buffering', 'no')
-    res.flushHeaders()
-
-    // 客户端断开时清理
-    req.on('close', () => res.end())
-
-    await chatService.chat({ question: question.trim(), history }, res)
+    try {
+      const result = await chatService.chatJSON({ question: question.trim(), history })
+      res.json({ code: 0, data: result, message: 'success' })
+    } catch (err) {
+      console.error('[Chat] 错误:', err.message)
+      res.status(500).json({ code: 500, message: err.message || 'AI 调用失败' })
+    }
   },
 
   // 获取 AI 状态
