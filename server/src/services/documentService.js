@@ -3,7 +3,7 @@ const cheerio = require('cheerio')
 const prisma = require('../utils/prisma')
 
 const documentService = {
-  // 解析 HTML 文件，提取标题和正文
+  // 解析 HTML 文件，提取标题和摘要，保留完整 HTML
   parseHtmlFile(filePath) {
     const html = fs.readFileSync(filePath, 'utf-8')
     const $ = cheerio.load(html)
@@ -15,8 +15,8 @@ const documentService = {
     const bodyText = $('body').text().replace(/\s+/g, ' ').trim()
     const summary = bodyText.substring(0, 200)
 
-    // 获取 body 内的 HTML 内容
-    const content = $('body').html() || html
+    // 保存完整 HTML（包含 head 中的 style/script）
+    const content = html
 
     return { title, summary, content }
   },

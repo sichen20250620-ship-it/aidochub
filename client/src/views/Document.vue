@@ -13,7 +13,16 @@
       </div>
     </div>
 
-    <div class="doc-content" v-if="doc" v-html="doc.content"></div>
+    <!-- 用 iframe 渲染完整 HTML，保留原始样式 -->
+    <div class="doc-frame-wrap" v-if="doc">
+      <iframe
+        ref="docFrame"
+        class="doc-frame"
+        :srcdoc="doc.content"
+        sandbox="allow-scripts allow-same-origin"
+        @load="adjustFrameHeight"
+      ></iframe>
+    </div>
 
     <el-empty v-if="!loading && !doc" description="文档不存在" />
   </div>
@@ -28,9 +37,23 @@ import { getDocumentById } from '../api/document'
 const route = useRoute()
 const doc = ref(null)
 const loading = ref(true)
+const docFrame = ref()
 
 function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('zh-CN')
+}
+
+function adjustFrameHeight() {
+  const iframe = docFrame.value
+  if (!iframe) return
+  try {
+    const body = iframe.contentDocument?.body
+    if (body) {
+      iframe.style.height = body.scrollHeight + 40 + 'px'
+    }
+  } catch {
+    // 跨域限制时忽略
+  }
 }
 
 onMounted(async () => {
@@ -47,14 +70,14 @@ onMounted(async () => {
 
 <style scoped>
 .doc-page {
-  max-width: 860px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 24px;
   min-height: 400px;
 }
 
 .doc-header {
-  margin-bottom: 32px;
+  margin-bottom: 24px;
   padding-bottom: 20px;
   border-bottom: 1px solid #ebeef5;
 }
@@ -74,81 +97,17 @@ onMounted(async () => {
   color: #909399;
 }
 
-.doc-content {
-  line-height: 1.8;
-  font-size: 15px;
-  color: #303133;
-}
-
-.doc-content :deep(h1),
-.doc-content :deep(h2),
-.doc-content :deep(h3) {
-  margin: 24px 0 12px;
-  color: #303133;
-}
-
-.doc-content :deep(h1) { font-size: 24px; }
-.doc-content :deep(h2) { font-size: 20px; }
-.doc-content :deep(h3) { font-size: 17px; }
-
-.doc-content :deep(p) {
-  margin: 12px 0;
-}
-
-.doc-content :deep(code) {
-  background: #f5f7fa;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 13px;
-  color: #e6a23c;
-}
-
-.doc-content :deep(pre) {
-  background: #1e1e1e;
-  color: #d4d4d4;
-  padding: 16px;
-  border-radius: 8px;
-  overflow-x: auto;
-  margin: 16px 0;
-}
-
-.doc-content :deep(pre code) {
-  background: none;
-  color: inherit;
-  padding: 0;
-}
-
-.doc-content :deep(img) {
-  max-width: 100%;
-  border-radius: 8px;
-}
-
-.doc-content :deep(table) {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 16px 0;
-}
-
-.doc-content :deep(th),
-.doc-content :deep(td) {
+.doc-frame-wrap {
+  background: #fff;
   border: 1px solid #ebeef5;
-  padding: 8px 12px;
-  text-align: left;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
-.doc-content :deep(th) {
-  background: #f5f7fa;
-}
-
-.doc-content :deep(a) {
-  color: #409eff;
-}
-
-.doc-content :deep(blockquote) {
-  border-left: 4px solid #409eff;
-  padding: 12px 16px;
-  margin: 16px 0;
-  background: #f5f7fa;
-  color: #606266;
+.doc-frame {
+  width: 100%;
+  min-height: 600px;
+  border: none;
+  display: block;
 }
 </style>
