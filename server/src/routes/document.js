@@ -10,8 +10,11 @@ router.get('/', authRequired, documentController.getList)
 // 文档详情（需登录）
 router.get('/:id', authRequired, documentController.getById)
 
-// 上传文档（编辑者及以上）
+// 上传单个文档（编辑者及以上）
 router.post('/upload', authRequired, editorRequired, upload.single('file'), documentController.upload)
+
+// 批量上传文档（编辑者及以上，最多 20 个文件）
+router.post('/upload-batch', authRequired, editorRequired, upload.array('files', 20), documentController.uploadBatch)
 
 // 删除文档（管理员）
 router.delete('/:id', authRequired, adminRequired, documentController.delete)

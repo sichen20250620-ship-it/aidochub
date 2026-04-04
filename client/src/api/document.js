@@ -17,6 +17,14 @@ export function uploadDocument(formData) {
   })
 }
 
+// 批量上传文档
+export function uploadDocumentBatch(formData) {
+  return request.post('/documents/upload-batch', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 120000
+  })
+}
+
 // 删除文档（管理员）
 export function deleteDocument(id) {
   return request.delete(`/documents/${id}`)

@@ -24,6 +24,43 @@ const documentController = {
     }
   },
 
+  // 批量上传文档
+  async uploadBatch(req, res) {
+    try {
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ code: 400, message: '请选择文件' })
+      }
+      const { categoryId } = req.body
+      if (!categoryId) {
+        return res.status(400).json({ code: 400, message: '请选择知识分类' })
+      }
+
+      const results = []
+      const errors = []
+
+      for (const file of req.files) {
+        try {
+          const doc = await documentService.create({
+            file,
+            categoryId,
+            uploaderId: req.user.id
+          })
+          results.push({ title: doc.title, id: doc.id, status: 'success' })
+        } catch (err) {
+          errors.push({ filename: file.originalname, error: err.message })
+        }
+      }
+
+      res.json({
+        code: 0,
+        data: { success: results, errors, total: req.files.length },
+        message: `成功上传 ${results.length}/${req.files.length} 个文件`
+      })
+    } catch (err) {
+      res.status(500).json({ code: 500, message: err.message })
+    }
+  },
+
   // 文档列表
   async getList(req, res) {
     const { categoryId, keyword, page, pageSize } = req.query

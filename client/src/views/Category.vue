@@ -20,7 +20,7 @@
         @keyup.enter="loadDocuments"
       />
       <el-button
-        v-if="userStore.isAdmin"
+        v-if="canUpload"
         type="primary"
         :icon="Upload"
         @click="showUpload = true"
@@ -58,11 +58,7 @@
       </div>
 
       <el-empty v-if="!loading && documents.length === 0" description="暂无文档，等待上传">
-        <el-button
-          v-if="userStore.isAdmin"
-          type="primary"
-          @click="showUpload = true"
-        >
+        <el-button v-if="canUpload" type="primary" @click="showUpload = true">
           上传第一篇文档
         </el-button>
       </el-empty>
@@ -79,31 +75,51 @@
       />
     </div>
 
-    <!-- 上传弹窗 -->
-    <el-dialog v-model="showUpload" title="上传文档" width="480px">
-      <el-form label-width="80px">
-        <el-form-item label="文档标题">
-          <el-input v-model="uploadForm.title" placeholder="留空则自动提取 HTML 标题" />
-        </el-form-item>
-        <el-form-item label="HTML 文件">
-          <el-upload
-            ref="uploadRef"
-            :auto-upload="false"
-            :limit="1"
-            accept=".html,.htm"
-            :on-change="handleFileChange"
-          >
-            <el-button type="primary" plain>选择文件</el-button>
-            <template #tip>
-              <div class="el-upload__tip">仅支持 .html / .htm 文件，不超过 20MB</div>
-            </template>
-          </el-upload>
-        </el-form-item>
-      </el-form>
+    <!-- 上传弹窗（支持拖拽 + 多文件） -->
+    <el-dialog v-model="showUpload" title="上传文档" width="560px" @close="resetUpload">
+      <el-upload
+        ref="uploadRef"
+        drag
+        multiple
+        :auto-upload="false"
+        accept=".html,.htm"
+        :on-change="handleFilesChange"
+        :on-remove="handleFilesChange"
+        :file-list="fileList"
+        class="upload-area"
+      >
+        <div class="upload-drag-content">
+          <el-icon class="el-icon--upload" :size="48"><Upload /></el-icon>
+          <div class="el-upload__text">拖拽文件到此处，或 <em>点击选择</em></div>
+          <div class="el-upload__tip">支持 .html / .htm 文件，单文件不超过 20MB，一次最多 20 个</div>
+        </div>
+      </el-upload>
+
+      <!-- 上传结果 -->
+      <div v-if="uploadResult" class="upload-result">
+        <el-alert
+          :title="`上传完成：成功 ${uploadResult.success.length} 个，失败 ${uploadResult.errors.length} 个`"
+          :type="uploadResult.errors.length ? 'warning' : 'success'"
+          show-icon
+          :closable="false"
+        />
+        <div v-if="uploadResult.errors.length" class="error-list">
+          <div v-for="(err, i) in uploadResult.errors" :key="i" class="error-item">
+            {{ err.filename }}: {{ err.error }}
+          </div>
+        </div>
+      </div>
+
       <template #footer>
-        <el-button @click="showUpload = false">取消</el-button>
-        <el-button type="primary" :loading="uploading" @click="handleUpload">
-          确认上传
+        <el-button @click="showUpload = false">{{ uploadResult ? '关闭' : '取消' }}</el-button>
+        <el-button
+          v-if="!uploadResult"
+          type="primary"
+          :loading="uploading"
+          :disabled="selectedFiles.length === 0"
+          @click="handleBatchUpload"
+        >
+          上传 {{ selectedFiles.length }} 个文件
         </el-button>
       </template>
     </el-dialog>
@@ -111,12 +127,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ArrowLeft, Search, Upload } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getCategoryById } from '../api/category'
-import { getDocuments, uploadDocument, deleteDocument } from '../api/document'
+import { getDocuments, uploadDocumentBatch, deleteDocument } from '../api/document'
 import { useUserStore } from '../stores/user'
 
 const route = useRoute()
@@ -131,11 +147,16 @@ const page = ref(1)
 const pageSize = 20
 const total = ref(0)
 
+// 权限：admin 和 editor 可以上传
+const canUpload = computed(() => ['admin', 'editor'].includes(userStore.user?.role))
+
 // 上传相关
 const showUpload = ref(false)
 const uploading = ref(false)
 const uploadRef = ref()
-const uploadForm = ref({ title: '', file: null })
+const fileList = ref([])
+const selectedFiles = ref([])
+const uploadResult = ref(null)
 
 function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('zh-CN')
@@ -153,35 +174,42 @@ async function loadDocuments() {
     documents.value = res.data.list
     total.value = res.data.total
   } catch {
-    // handled by interceptor
+    // handled
   } finally {
     loading.value = false
   }
 }
 
-function handleFileChange(file) {
-  uploadForm.value.file = file.raw
+function handleFilesChange() {
+  // el-upload 的 fileList 是内部管理的，通过 ref 获取
+  setTimeout(() => {
+    const list = uploadRef.value?.uploadFiles || []
+    selectedFiles.value = list.filter(f => f.status !== 'success').map(f => f.raw).filter(Boolean)
+  }, 0)
 }
 
-async function handleUpload() {
-  if (!uploadForm.value.file) {
-    return ElMessage.warning('请选择 HTML 文件')
+function resetUpload() {
+  fileList.value = []
+  selectedFiles.value = []
+  uploadResult.value = null
+}
+
+async function handleBatchUpload() {
+  if (selectedFiles.value.length === 0) {
+    return ElMessage.warning('请选择文件')
   }
   uploading.value = true
   try {
     const fd = new FormData()
-    fd.append('file', uploadForm.value.file)
+    selectedFiles.value.forEach(file => fd.append('files', file))
     fd.append('categoryId', categoryId)
-    if (uploadForm.value.title) {
-      fd.append('title', uploadForm.value.title)
-    }
-    await uploadDocument(fd)
-    ElMessage.success('上传成功')
-    showUpload.value = false
-    uploadForm.value = { title: '', file: null }
+
+    const res = await uploadDocumentBatch(fd)
+    uploadResult.value = res.data
+    ElMessage.success(res.message)
     loadDocuments()
   } catch {
-    // handled by interceptor
+    // handled
   } finally {
     uploading.value = false
   }
@@ -284,5 +312,27 @@ onMounted(async () => {
   display: flex;
   justify-content: center;
   margin-top: 24px;
+}
+
+.upload-area {
+  width: 100%;
+}
+
+.upload-drag-content {
+  padding: 20px 0;
+}
+
+.upload-result {
+  margin-top: 16px;
+}
+
+.error-list {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #f56c6c;
+}
+
+.error-item {
+  padding: 4px 0;
 }
 </style>
