@@ -180,12 +180,8 @@ async function loadDocuments() {
   }
 }
 
-function handleFilesChange() {
-  // el-upload 的 fileList 是内部管理的，通过 ref 获取
-  setTimeout(() => {
-    const list = uploadRef.value?.uploadFiles || []
-    selectedFiles.value = list.filter(f => f.status !== 'success').map(f => f.raw).filter(Boolean)
-  }, 0)
+function handleFilesChange(file, list) {
+  selectedFiles.value = list.map(f => f.raw).filter(Boolean)
 }
 
 function resetUpload() {
