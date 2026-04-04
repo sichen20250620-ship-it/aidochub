@@ -4,7 +4,7 @@
 
 set -e
 APP_DIR="/root/aidochub"
-PORT=8080  # AIDocHub 对外端口
+PORT=9527  # AIDocHub 对外端口（非常见端口，降低被扫描风险）
 
 echo "=============================="
 echo "  AIDocHub 部署开始"
