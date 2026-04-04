@@ -6,42 +6,23 @@
         <p>AI知识文档中台</p>
       </div>
 
-      <el-tabs v-model="activeTab" class="login-tabs">
-        <el-tab-pane label="登录" name="login">
-          <el-form :model="loginForm" :rules="loginRules" ref="loginRef" @submit.prevent="handleLogin">
-            <el-form-item prop="email">
-              <el-input v-model="loginForm.email" placeholder="邮箱" :prefix-icon="Message" size="large" />
-            </el-form-item>
-            <el-form-item prop="password">
-              <el-input v-model="loginForm.password" type="password" placeholder="密码" :prefix-icon="Lock" size="large" show-password />
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" size="large" class="submit-btn" :loading="loading" @click="handleLogin">
-                登录
-              </el-button>
-            </el-form-item>
-          </el-form>
-        </el-tab-pane>
+      <el-form :model="loginForm" :rules="loginRules" ref="loginRef" @submit.prevent="handleLogin">
+        <el-form-item prop="email">
+          <el-input v-model="loginForm.email" placeholder="邮箱" :prefix-icon="Message" size="large" />
+        </el-form-item>
+        <el-form-item prop="password">
+          <el-input v-model="loginForm.password" type="password" placeholder="密码" :prefix-icon="Lock" size="large" show-password />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" size="large" class="submit-btn" :loading="loading" @click="handleLogin">
+            登录
+          </el-button>
+        </el-form-item>
+      </el-form>
 
-        <el-tab-pane label="注册" name="register">
-          <el-form :model="registerForm" :rules="registerRules" ref="registerRef" @submit.prevent="handleRegister">
-            <el-form-item prop="username">
-              <el-input v-model="registerForm.username" placeholder="用户名" :prefix-icon="User" size="large" />
-            </el-form-item>
-            <el-form-item prop="email">
-              <el-input v-model="registerForm.email" placeholder="邮箱" :prefix-icon="Message" size="large" />
-            </el-form-item>
-            <el-form-item prop="password">
-              <el-input v-model="registerForm.password" type="password" placeholder="密码" :prefix-icon="Lock" size="large" show-password />
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" size="large" class="submit-btn" :loading="loading" @click="handleRegister">
-                注册
-              </el-button>
-            </el-form-item>
-          </el-form>
-        </el-tab-pane>
-      </el-tabs>
+      <div class="login-tip">
+        没有账号？请联系管理员创建
+      </div>
     </div>
   </div>
 </template>
@@ -49,32 +30,20 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { User, Message, Lock } from '@element-plus/icons-vue'
+import { Message, Lock } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '../stores/user'
 
 const router = useRouter()
 const userStore = useUserStore()
-const activeTab = ref('login')
 const loading = ref(false)
 const loginRef = ref()
-const registerRef = ref()
 
 const loginForm = reactive({ email: '', password: '' })
-const registerForm = reactive({ username: '', email: '', password: '' })
 
 const loginRules = {
   email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
-}
-
-const registerRules = {
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }],
-  password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码至少6位', trigger: 'blur' }
-  ]
 }
 
 async function handleLogin() {
@@ -83,20 +52,6 @@ async function handleLogin() {
   try {
     await userStore.login(loginForm)
     ElMessage.success('登录成功')
-    router.push('/')
-  } catch {
-    // 错误已在拦截器处理
-  } finally {
-    loading.value = false
-  }
-}
-
-async function handleRegister() {
-  await registerRef.value.validate()
-  loading.value = true
-  try {
-    await userStore.register(registerForm)
-    ElMessage.success('注册成功')
     router.push('/')
   } catch {
     // 错误已在拦截器处理
@@ -125,7 +80,7 @@ async function handleRegister() {
 
 .login-header {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
 
 .login-header h1 {
@@ -141,5 +96,12 @@ async function handleRegister() {
 
 .submit-btn {
   width: 100%;
+}
+
+.login-tip {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 13px;
+  color: #909399;
 }
 </style>

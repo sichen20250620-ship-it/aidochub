@@ -2,16 +2,8 @@ const authService = require('../services/authService')
 
 const authController = {
   async register(req, res) {
-    try {
-      const { email, username, password } = req.body
-      if (!email || !username || !password) {
-        return res.status(400).json({ code: 400, message: '请填写完整信息' })
-      }
-      const result = await authService.register({ email, username, password })
-      res.json({ code: 0, data: result, message: '注册成功' })
-    } catch (err) {
-      res.status(400).json({ code: 400, message: err.message })
-    }
+    // 自主注册已关闭，请联系管理员创建账号
+    return res.status(403).json({ code: 403, message: '注册已关闭，请联系管理员创建账号' })
   },
 
   async login(req, res) {

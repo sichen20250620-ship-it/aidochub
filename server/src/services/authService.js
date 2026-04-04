@@ -25,6 +25,8 @@ const authService = {
     const user = await prisma.user.findUnique({ where: { email } })
     if (!user) throw new Error('邮箱或密码错误')
 
+    if (user.status === 'disabled') throw new Error('账号已被禁用，请联系管理员')
+
     const valid = await bcrypt.compare(password, user.password)
     if (!valid) throw new Error('邮箱或密码错误')
 

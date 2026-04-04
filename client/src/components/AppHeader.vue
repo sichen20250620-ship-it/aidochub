@@ -57,6 +57,8 @@ function handleSearch() {
 function handleCommand(cmd) {
   if (cmd === 'dashboard') {
     router.push('/dashboard')
+  } else if (cmd === 'admin') {
+    router.push('/admin')
   } else if (cmd === 'logout') {
     userStore.logout()
     router.push('/login')
