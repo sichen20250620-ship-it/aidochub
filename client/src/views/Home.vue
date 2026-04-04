@@ -78,4 +78,22 @@ onMounted(() => {
 .category-section {
   margin-top: 12px;
 }
+
+@media (max-width: 768px) {
+  .home {
+    padding: 16px;
+  }
+
+  .hero {
+    padding: 24px 0 20px;
+  }
+
+  .hero-title {
+    font-size: 22px;
+  }
+
+  .hero-desc {
+    font-size: 13px;
+  }
+}
 </style>

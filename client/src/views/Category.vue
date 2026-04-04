@@ -331,4 +331,33 @@ onMounted(async () => {
 .error-item {
   padding: 4px 0;
 }
+
+@media (max-width: 768px) {
+  .category-page {
+    padding: 12px;
+  }
+
+  .header-info h1 {
+    font-size: 20px;
+  }
+
+  .action-bar {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .doc-item {
+    padding: 14px;
+  }
+
+  .doc-meta {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
 </style>

@@ -126,4 +126,23 @@ function handleCommand(cmd) {
   font-size: 14px;
   color: #303133;
 }
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .logo-subtitle {
+    display: none;
+  }
+
+  .search-input {
+    width: 120px;
+  }
+
+  .username {
+    display: none;
+  }
+}
 </style>

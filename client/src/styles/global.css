@@ -9,9 +9,26 @@ body {
     'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
   background-color: #f5f7fa;
   color: #303133;
+  -webkit-text-size-adjust: 100%;
 }
 
 a {
   text-decoration: none;
   color: inherit;
+}
+
+/* ===== 移动端全局适配 ===== */
+@media (max-width: 768px) {
+  .el-main {
+    padding: 12px !important;
+  }
+
+  .el-dialog {
+    width: 92% !important;
+    margin: 8vh auto !important;
+  }
+
+  .el-table {
+    font-size: 13px;
+  }
 }

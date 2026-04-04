@@ -327,4 +327,40 @@ onMounted(async () => {
   padding-top: 16px;
   border-top: 1px solid #ebeef5;
 }
+
+@media (max-width: 768px) {
+  .chat-page {
+    padding: 12px;
+    height: calc(100vh - 80px);
+  }
+
+  .chat-header h2 {
+    font-size: 18px;
+  }
+
+  .chat-welcome {
+    padding: 30px 12px;
+  }
+
+  .suggestions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .msg-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  .msg {
+    gap: 8px;
+  }
+
+  .msg.user .msg-content,
+  .msg.assistant .msg-content {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+}
 </style>

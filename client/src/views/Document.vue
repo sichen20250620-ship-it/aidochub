@@ -253,4 +253,23 @@ onMounted(async () => {
   color: #606266;
   line-height: 1.6;
 }
+
+@media (max-width: 768px) {
+  .doc-page {
+    padding: 12px;
+  }
+
+  .doc-title {
+    font-size: 20px;
+  }
+
+  .doc-meta {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .doc-frame {
+    min-height: 400px;
+  }
+}
 </style>
